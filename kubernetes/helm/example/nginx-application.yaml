@@ -1,0 +1,73 @@
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: my-nginx
+  namespace: istio-system
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - istio-public-gateway
+  http:
+  - route:
+    - destination:
+        host: my-nginx.example.svc.cluster.local
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: example
+  labels:
+    istio-injection: enabled
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-nginx
+  namespace: example
+  labels:
+    run: my-nginx
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    run: my-nginx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx
+  namespace: example
+spec:
+  selector:
+    matchLabels:
+      run: my-nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        run: my-nginx
+    spec:
+      containers:
+      - name: my-nginx
+        image: nginx
+        ports:
+        - name: http
+          containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          failureThreshold: 2
+          timeoutSeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          failureThreshold: 2
+          timeoutSeconds: 5
+          periodSeconds: 10

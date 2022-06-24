@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: istio-config
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: istio-system
+---
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: istio-default
+  namespace: istio-system
+spec:
+  components:
+    ingressGateways:
+    - enabled: true
+      k8s:
+        service:
+          ports:
+          - name: http8080
+            nodePort: 30080
+            port: 8080
+          type: NodePort
+      name: istio-public-ingressgateway
+    - enabled: false
+      name: istio-ingressgateway
+  hub: gcr.io/istio-release
+  profile: default
